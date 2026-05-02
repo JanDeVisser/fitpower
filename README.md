@@ -1,33 +1,32 @@
 # Sweattrails
 
-A C program using raylib that parses `.fit` files and displays power data in an interactive graph. Includes Strava integration for browsing activities.
+A Zig program using raylib that parses `.fit` files and displays power data in an interactive graph. Includes integrations with Strava, Wahoo, Zwift, and Garmin Connect.
 
 ## Requirements
 
+- [Zig 0.16](https://ziglang.org/download/)
 - raylib
 - libcurl
 - openssl
-- clang
-- pkg-config
 - mkcert (optional, for Wahoo HTTPS callback)
 - python3 + `pip install garminconnect` (optional, for Garmin Connect sync)
 
 ### macOS
 
 ```bash
-brew install raylib
+brew install zig raylib curl openssl
 ```
 
 ### Linux (Fedora)
 
 ```bash
-sudo dnf install raylib-devel libcurl-devel
+sudo dnf install raylib-devel libcurl-devel openssl-devel
 ```
 
 ### Linux (Ubuntu/Debian)
 
 ```bash
-sudo apt install libraylib-dev libcurl4-openssl-dev
+sudo apt install libraylib-dev libcurl4-openssl-dev libssl-dev
 ```
 
 ### Optional: JetBrains Mono font
@@ -39,13 +38,15 @@ The app uses JetBrains Mono if available, otherwise falls back to raylib's defau
 ## Build
 
 ```bash
-make
+zig build
 ```
+
+The binary is produced at `zig-out/bin/sweattrails`.
 
 ## Usage
 
 ```bash
-./sweattrails
+./zig-out/bin/sweattrails
 ```
 
 ### Adding Activities
@@ -159,6 +160,24 @@ No configuration needed - the app auto-detects `~/Documents/Zwift/Activities/`.
 
 Files are deduplicated by activity timestamp and file size, so re-running won't import duplicates.
 
+## Garmin Connect Setup
+
+1. Install the Python `garminconnect` module:
+   ```bash
+   pip install garminconnect
+   ```
+2. Create config file `~/.config/sweattrails/garmin_config`:
+   ```json
+   {
+     "email": "your@email.com",
+     "password": "your_garmin_password"
+   }
+   ```
+3. Run sweattrails, go to Settings tab, click "Connect to Garmin"
+4. Activities sync automatically on startup once authenticated
+
+**Note:** `python3` and the `garminconnect` pip package must be installed and available on your system. The app invokes `garmin_helper.py` as a subprocess — no Zig-level Python dependency is needed at compile time.
+
 ## Features
 
 ### Local Activities
@@ -230,37 +249,19 @@ Files are deduplicated by activity timestamp and file size, so re-running won't 
 
 ## Project Structure
 
-- `main.c` - Raylib GUI, activity tree browser, tab system, graph rendering
-- `fit_parser.c/h` - FIT/JSON file parser for power, GPS, heart rate, cadence
-- `activity_meta.c/h` - Metadata persistence for user-edited title/description
-- `file_organizer.c/h` - Inbox processing and file organization
-- `activity_tree.c/h` - Year/month tree data structure
-- `strava_api.c/h` - Strava OAuth and API client
-- `wahoo_api.c/h` - Wahoo OAuth and API client
-- `zwift_sync.c/h` - Zwift local/remote folder sync via SSH/SCP
-- `garmin_sync.c/h` - Garmin Connect sync via Python subprocess
-- `garmin_helper.py` - Python helper for Garmin Connect API (requires `pip install garminconnect`)
-- `tile_map.c/h` - OpenStreetMap tile fetching, caching, and map rendering
-- `zwift_worlds.c/h` - Zwift world detection and map image handling
-- `Makefile` - Build configuration (Linux and macOS)
-
-## Garmin Connect Setup
-
-1. Install the Python `garminconnect` module:
-   ```bash
-   pip install garminconnect
-   ```
-2. Create config file `~/.config/sweattrails/garmin_config`:
-   ```json
-   {
-     "email": "your@email.com",
-     "password": "your_garmin_password"
-   }
-   ```
-3. Run sweattrails, go to Settings tab, click "Connect to Garmin"
-4. Activities sync automatically on startup once authenticated
-
-**Note:** `python3` and the `garminconnect` pip package must be installed and available on your system. The app invokes `garmin_helper.py` as a subprocess — no C-level Python dependency is needed at compile time.
+- `src/main.zig` - Raylib GUI, activity tree browser, tab system, graph rendering
+- `src/fit_parser.zig` - FIT/JSON file parser for power, GPS, heart rate, cadence
+- `src/activity_meta.zig` - Metadata persistence for user-edited title/description
+- `src/file_organizer.zig` - Inbox processing and file organization
+- `src/activity_tree.zig` - Year/month tree data structure
+- `src/strava_api.zig` - Strava OAuth and API client
+- `src/wahoo_api.zig` - Wahoo OAuth and API client
+- `src/zwift_sync.zig` - Zwift local/remote folder sync via SSH/SCP
+- `src/garmin_sync.zig` - Garmin Connect sync via Python subprocess
+- `src/garmin_helper.py` - Python helper for Garmin Connect API (requires `pip install garminconnect`)
+- `src/tile_map.zig` - OpenStreetMap tile fetching, caching, and map rendering
+- `src/zwift_worlds.zig` - Zwift world detection and map image handling
+- `build.zig` - Zig build configuration (Linux and macOS)
 
 ## Potential Improvements
 

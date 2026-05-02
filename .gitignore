@@ -4,3 +4,6 @@ fitpower
 
 # macOS
 .DS_Store
+
+zig-out/
+.zig-cache/
